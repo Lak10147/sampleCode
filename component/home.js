@@ -30,6 +30,7 @@ export default class home extends Component {
       responseImage: [],
       resresh: false,
       visibleLoader: true,
+      errorProp: '',
     };
   }
 
@@ -46,45 +47,50 @@ export default class home extends Component {
     </TouchableOpacity>
   );
 
-  componentWillMount() {
+  async componentDidMount() {
     this.getApiData();
     this.getImageData();
   }
 
   async getApiData() {
-    console.log('before fetch');
-    return fetch('https://jsonplaceholder.typicode.com/posts')
-      .then(response => {
-        console.log(response);
-        return response.json();
-      })
-      .then(responseJson => {
-        console.log(responseJson);
-        console.log(this);
-        this.setState({resources: responseJson});
-      })
-      .catch(error => {
-        console.error(error);
-      });
-    // console.log('fetch sent');
+    try {
+      const response = await fetch(
+        'https://jsonplaceholder.typicode.com/posts',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      const responseJson = await response.json();
+      // eslint-disable-next-line react/no-did-mount-set-state
+      this.setState({resources: responseJson});
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getImageData() {
-    return fetch('https://jsonplaceholder.typicode.com/photos?album=1')
-      .then(response => {
-        console.log(response);
-        return response.json();
-      })
-      .then(responseJson => {
-        console.log(responseJson);
-        this.setState({visibleLoader: false});
-        this.setState({responseImage: responseJson});
-        console.log('Visibility' + this.state.visibleLoader);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-    // console.log('fetch sent');
+    try {
+      const response = await fetch(
+        'https://jsonplaceholder.typicode.com/photos?album=1',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      const responseJson = await response.json();
+      // eslint-disable-next-line react/no-did-mount-set-state
+      this.setState({responseImage: responseJson});
+      this.setState({visibleLoader: false});
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   _navigateToScreen2(post) {
@@ -107,6 +113,7 @@ export default class home extends Component {
     );
   };
   render() {
+    const {visibleLoader} = this.state;
     return (
       <View style={[styles.container, styles.horizontal]}>
         <StatusBar
@@ -115,19 +122,19 @@ export default class home extends Component {
           backgroundColor="#00BCD4"
           translucent={false}
         />
-        {this.state.visibleLoader ?(
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : (
-          <View>
-            <FlatList
-              keyExtractor={this.keyExtractor}
-              data={this.state.resources}
-              renderItem={this.renderItem}
-              refreshing={this.state.resresh}
-              onRefresh={this.refershPage}
-            />
-          </View>
+        {/* <ActivityIndicator size="large" color="#0000ff" animating={load} /> */}
+        {visibleLoader && (
+          <ActivityIndicator style={{height: 80}} color="#C00" size="large" />
         )}
+        <View>
+          <FlatList
+            keyExtractor={this.keyExtractor}
+            data={this.state.resources}
+            renderItem={this.renderItem}
+            refreshing={this.state.resresh}
+            onRefresh={this.refershPage}
+          />
+        </View>
       </View>
     );
   }
