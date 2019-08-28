@@ -28,7 +28,7 @@ export default class home extends Component {
     this.state = {
       resources: [],
       responseImage: [],
-      resresh: false,
+      refresh: false,
       visibleLoader: true,
       errorProp: '',
     };
@@ -53,6 +53,7 @@ export default class home extends Component {
   }
 
   async getApiData() {
+    this.setState({refresh: false});
     try {
       const response = await fetch(
         'https://jsonplaceholder.typicode.com/posts',
@@ -66,9 +67,14 @@ export default class home extends Component {
       );
       const responseJson = await response.json();
       // eslint-disable-next-line react/no-did-mount-set-state
-      this.setState({resources: responseJson});
+      this.setState({
+        resources: responseJson,
+        visibleLoader: false,
+        refresh: false,
+      });
     } catch (error) {
       console.log(error);
+      this.setState({visibleLoader: false, refresh: false});
     }
   }
 
@@ -87,9 +93,11 @@ export default class home extends Component {
       const responseJson = await response.json();
       // eslint-disable-next-line react/no-did-mount-set-state
       this.setState({responseImage: responseJson});
-      this.setState({visibleLoader: false});
+      // If user need to image data new call fuction inside refersh fuction and use this statment for close
+      this.setState({visibleLoader: false, refresh: false});
     } catch (error) {
       console.log(error);
+      this.setState({visibleLoader: false, refresh: false});
     }
   }
 
@@ -101,14 +109,16 @@ export default class home extends Component {
   }
 
   refershPage = () => {
+    let self = this;
     this.setState(
       {
-        refreshing: true,
+        refresh: true,
         seed: this.state.seed + 1,
       },
       () => {
         console.log(this);
-        this.getApiData();
+        self.getApiData();
+        this.setState({refresh: false});
       },
     );
   };
@@ -131,7 +141,7 @@ export default class home extends Component {
             keyExtractor={this.keyExtractor}
             data={this.state.resources}
             renderItem={this.renderItem}
-            refreshing={this.state.resresh}
+            refreshing={this.state.refresh}
             onRefresh={this.refershPage}
           />
         </View>
